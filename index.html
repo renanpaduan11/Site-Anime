@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shinobi Archives - Centro de Comando</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --ink: #080a0f;
+            --panel: #10141d;
+            --panel-2: #151b27;
+            --line: #27303d;
+            --muted: #8993a4;
+            --soft: #b9c1ce;
+            --orange: #ff6a00;
+            --orange-2: #ff8a32;
+            --blue: #102b54;
+            --green: #5ed28a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--ink);
+            color: #f5f6f8;
+            font-family: Arial, Helvetica, sans-serif;
+            position: relative;
+        }
+
+        /* Video Background Container */
+        #bg-video-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.35;
+        }
+
+        #bg-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .app-content-wrapper {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .splash {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            background: #080a0f;
+            animation: splash-out .6s ease 1.8s forwards;
+            pointer-events: none;
+        }
+
+        .splash.hidden {
+            display: none !important;
+        }
+
+        .splash strong {
+            font-size: 12px;
+            letter-spacing: .28em;
+            color: #fff;
+        }
+
+        .splash span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .loadbar {
+            width: 170px;
+            height: 2px;
+            background: #272d37;
+            overflow: hidden;
+        }
+
+        .loadbar i {
+            display: block;
+            height: 100%;
+            background: var(--orange);
+            animation: load 1.5s ease forwards;
+        }
+
+        .crest {
+            position: relative;
+            width: 76px;
+            height: 76px;
+            border: 1px solid rgba(255,106,0,.55);
+            display: grid;
+            place-items: center;
+            transform: rotate(45deg);
+            background: rgba(255,106,0,.06);
+            box-shadow: 0 0 44px rgba(255,106,0,.2);
+        }
+
+        .crest:before, .crest:after {
+            content: "";
+            position: absolute;
+            border: 1px solid rgba(255,106,0,.25);
+            inset: 8px;
+        }
+
+        .crest:after {
+            inset: 18px;
+        }
+
+        .crest span {
+            transform: rotate(-45deg);
+            color: var(--orange);
+            font-size: 28px;
+        }
+
+        .crest-small {
+            width: 34px;
+            height: 34px;
+        }
+
+        .crest-small:before {
+            inset: 4px;
+        }
+
+        .crest-small:after {
+            inset: 9px;
+        }
+
+        .crest-small span {
+            font-size: 14px;
+        }
+
+        @keyframes load {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes splash-out {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        .sidebar {
+            width: 244px;
+            border-right: 1px solid var(--line);
+            padding: 34px 18px 24px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(9,12,18,.92);
+        }
+
+        .brand, .login-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 14px;
+        }
+
+        .brand > div:last-child, .login-logo > div:last-child {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .brand strong, .login-logo strong {
+            letter-spacing: .22em;
+            font-size: 15px;
+        }
+
+        .brand span, .login-logo span {
+            font-size: 8px;
+            letter-spacing: .4em;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .side-label, .eyebrow {
+            color: #657184;
+            font-size: 9px;
+            letter-spacing: .18em;
+            font-weight: 700;
+        }
+
+        .side-label {
+            margin: 40px 14px 12px;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sidebar nav button {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            border-radius: 4px;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .sidebar nav button span {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .sidebar nav button.active {
+            background: linear-gradient(90deg, rgba(255,106,0,.16), transparent);
+            color: #fff;
+            border-left: 2px solid var(--orange);
+        }
+
+        .sidebar nav b {
+            margin-left: auto;
+            color: var(--orange);
+            font-size: 10px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+        }
+
+        .status {
+            padding: 13px 14px;
+            border: 1px solid var(--line);
+            color: #a8b1bd;
+            font-size: 11px;
+        }
+
+        .status i, .sage-status i {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--green);
+        }
+
+        .version {
+            color: #515b6b;
+            font-size: 9px;
+            padding: 17px 14px 0;
+        }
+
+        .main-content {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .topbar {
+            height: 86px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5.2%;
+            background: rgba(9,12,18,.8);
+        }
+
+        .breadcrumb {
+            font-size: 9px;
+            letter-spacing: .18em;
+            color: #748093;
+        }
+
+        .breadcrumb span {
+            color: #3f4854;
+            margin: 0 11px;
+        }
+
+        .header-actions, .profile-mini {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .icon-button {
+            position: relative;
+            border: 0;
+            background: none;
+            color: #9ba5b4;
+            font-size: 21px;
+        }
+
+        .icon-button em {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: var(--orange);
+            border-radius: 50%;
+            top: 2px;
+            right: -1px;
+        }
+
+        .profile-mini {
+            gap: 10px;
+        }
+
+        .profile-mini > div:nth-child(2) {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .profile-mini strong {
+            font-size: 12px;
+        }
+
+        .profile-mini span {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .avatar, .large-avatar {
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255,106,0,.5);
+            background: #23150e;
+            color: var(--orange);
+            font-weight: bold;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+
+        .chevron {
+            color: #667080 !important;
+            font-size: 16px !important;
+        }
+
+        .page-body {
+            max-width: 1130px;
+            margin: 0 auto;
+            padding: 48px 5.5% 80px;
+        }
+
+        .welcome-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 34px;
+        }
+
+        .welcome-row h1 {
+            margin: 10px 0 8px;
+            font-size: 32px;
+            letter-spacing: -.04em;
+            font-weight: 500;
+        }
+
+        .welcome-row p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .orange {
+            color: var(--orange);
+        }
+
+        .outline-button, .text-button {
+            border: 1px solid var(--line);
+            background: transparent;
+            color: #b8c0cc;
+            padding: 11px 15px;
+            font-size: 11px;
+        }
+
+        .outline-button span, .text-button {
+            color: var(--orange);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1.7fr 1fr;
+            gap: 14px;
+        }
+
+        .profile-card, .balance-card, .quick-grid button, .activity-list, .quiz-card, .mission-row, .product-card, .sage-card, .inventory-card, .minigame-card {
+            border: 1px solid var(--line);
+            background: linear-gradient(140deg, rgba(20,26,37,.92), rgba(12,16,23,.95));
+            backdrop-filter: blur(6px);
+        }
+
+        .profile-card, .balance-card {
+            padding: 24px;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rank-dot {
+            font-size: 9px;
+            color: var(--green);
+            letter-spacing: .1em;
+        }
+
+        .profile-main {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 25px 0 28px;
+        }
+
+        .large-avatar {
+            width: 55px;
+            height: 55px;
+            font-size: 22px;
+            border-radius: 50%;
+        }
+
+        .profile-main h2 {
+            font-size: 19px;
+            margin: 0 0 7px;
+        }
+
+        .profile-main p {
+            font-size: 11px;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .profile-arrow {
+            color: #677284;
+            margin-left: auto;
+        }
+
+        .xp {
+            border-top: 1px solid var(--line);
+            padding-top: 17px;
+        }
+
+        .xp div:first-child {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #778394;
+            letter-spacing: .1em;
+        }
+
+        .xp strong {
+            color: var(--orange);
+        }
+
+        .xp-bar {
+            height: 4px;
+            background: #27303c;
+            margin-top: 10px;
+        }
+
+        .xp-bar i {
+            display: block;
+            width: 68%;
+            height: 100%;
+            background: var(--orange);
+        }
+
+        .coin {
+            color: var(--orange);
+            font-size: 18px;
+        }
+
+        .balance {
+            display: block;
+            font-size: 38px;
+            letter-spacing: -.05em;
+            margin: 28px 0 8px;
+        }
+
+        .balance-change {
+            color: var(--green);
+            font-size: 11px;
+        }
+
+        .balance-change small {
+            color: var(--muted);
+            margin-left: 7px;
+        }
+
+        .mini-chart {
+            height: 40px;
+            display: flex;
+            align-items: end;
+            gap: 7px;
+            margin-top: 25px;
+        }
+
+        .mini-chart i {
+            width: 15%;
+            background: var(--orange);
+            opacity: .55;
+        }
+
+        .section-heading, .recent-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin: 49px 0 19px;
+        }
+
+        .section-heading h2 {
+            margin: 8px 0 0;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .text-button {
+            border: 0;
+            padding: 0;
+            background: none;
+            color: var(--orange);
+            cursor: pointer;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .quick-grid button {
+            min-height: 100px;
+            padding: 19px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            text-align: left;
+            color: #fff;
+            width: 100%;
+        }
+
+        .quick-grid button > div {
+            flex: 1;
+        }
+
+        .quick-grid strong, .quick-grid small {
+            display: block;
+        }
+
+        .quick-grid strong {
+            font-size: 12px;
+        }
+
+        .quick-grid small {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 7px;
+        }
+
+        .quick-icon {
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            font-size: 21px;
+        }
+
+        .orange-icon { color: var(--orange); background: rgba(255,106,0,.11); }
+        .blue-icon { color: #6da7ff; background: rgba(41,105,189,.16); }
+        .purple-icon { color: #b291ff; background: rgba(104,71,185,.16); }
+
+        .score-box, .mission-count, .shop-balance, .sage-status {
+            border: 1px solid var(--line);
+            padding: 14px 18px;
+            color: var(--muted);
+            font-size: 9px;
+            letter-spacing: .12em;
+            background: rgba(16,20,29,0.8);
+        }
+
+        .score-box strong, .mission-count strong {
+            display: block;
+            color: var(--orange);
+            font-size: 24px;
+            margin-top: 4px;
+            letter-spacing: 0;
+        }
+
+        .quiz-card, .minigame-card {
+            padding: 34px;
+            max-width: 1020px;
+            margin: 0 auto;
+        }
+
+        .quiz-kicker {
+            color: var(--orange);
+            font-size: 9px;
+            letter-spacing: .15em;
+        }
+
+        .quiz-kicker span {
+            float: right;
+            color: var(--muted);
+        }
+
+        .quiz-card h2, .minigame-card h2 {
+            font-size: 22px;
+            font-weight: 500;
+            margin: 25px 0;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .answers button {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            background: #111722;
+            border: 1px solid var(--line);
+            color: #e2e5ea;
+            text-align: left;
+            padding: 16px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .answers button:hover {
+            border-color: var(--orange);
+        }
+
+        .answers span {
+            color: var(--orange);
+            font-weight: bold;
+        }
+
+        .answers b {
+            margin-left: auto;
+            color: #657184;
+        }
+
+        .mission-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mission-row {
+            padding: 23px;
+            display: flex;
+            align-items: center;
+            gap: 23px;
+        }
+
+        .rank {
+            width: 47px;
+            height: 47px;
+            display: grid;
+            place-items: center;
+            font-size: 19px;
+            font-weight: bold;
+        }
+
+        .rank-s { color: #ff714f; background: rgba(255,75,55,.12); }
+        .rank-a { color: #e09a44; background: rgba(224,154,68,.12); }
+        .rank-b { color: #6e9eff; background: rgba(75,120,235,.12); }
+        .rank-d { color: #8290a5; background: rgba(130,144,165,.12); }
+
+        .mission-copy {
+            flex: 1;
+        }
+
+        .mission-copy h2 {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 7px 0;
+        }
+
+        .mission-copy p {
+            font-size: 11px;
+            color: var(--muted);
+            margin: 0 0 12px;
+        }
+
+        .mission-reward {
+            text-align: right;
+        }
+
+        .mission-reward span {
+            color: #657184;
+            font-size: 8px;
+            letter-spacing: .12em;
+        }
+
+        .mission-reward strong {
+            display: block;
+            color: var(--orange);
+            font-size: 19px;
+            margin: 8px 0 13px;
+        }
+
+        .action-btn {
+            border: 1px solid rgba(255,106,0,.45);
+            background: rgba(255,106,0,.09);
+            color: var(--orange);
+            padding: 9px 16px;
+            font-size: 10px;
+            border-radius: 4px;
+        }
+
+        .action-btn.completed {
+            background: rgba(94,210,138,0.15);
+            border-color: rgba(94,210,138,0.4);
+            color: var(--green);
+            pointer-events: none;
+        }
+
+        .shop-balance {
+            color: var(--orange);
+            font-size: 17px;
+            letter-spacing: 0;
+        }
+
+        .product-grid, .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .product-card, .inventory-card {
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        .product-art {
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .product-art span {
+            font-size: 45px;
+            color: var(--orange);
+            opacity: .8;
+        }
+
+        .leaf { background: radial-gradient(circle at center, rgba(34,197,94,.18), transparent 60%), #172233; }
+        .steps { background: radial-gradient(circle at center, rgba(100,160,250,.18), transparent 60%), #111b2b; }
+        .battle { background: radial-gradient(circle at center, rgba(239,68,68,.25), transparent 60%), #251714; }
+        .akatsuki { background: radial-gradient(circle at center, rgba(168,85,247,.25), transparent 60%), #1c1425; }
+        .rain { background: radial-gradient(circle at center, rgba(56,189,248,.25), transparent 60%), #131d2b; }
+
+        .product-info, .inventory-info {
+            padding: 18px;
+        }
+
+        .product-info h2, .inventory-info h2 {
+            font-size: 15px;
+            font-weight: 500;
+            margin: 8px 0 15px;
+        }
+
+        .product-info > div, .inventory-info > div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-info strong {
+            color: var(--orange);
+            font-size: 15px;
+        }
+
+        .sage-card {
+            max-width: 850px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .sage-header {
+            padding: 22px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .sage-orb {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(178,145,255,.15);
+            color: #b291ff;
+            font-size: 24px;
+        }
+
+        .sage-header h2 {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .sage-header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .sage-header > span {
+            margin-left: auto;
+            color: var(--green);
+            font-size: 8px;
+            letter-spacing: .1em;
+        }
+
+        .chat-messages {
+            min-height: 220px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            max-width: 85%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 26px;
+            height: 26px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: rgba(178,145,255,.15);
+            color: #b291ff;
+            font-size: 11px;
+            flex: none;
+        }
+
+        .message.user .message-avatar {
+            background: rgba(255,106,0,.15);
+            color: var(--orange);
+        }
+
+        .message p {
+            margin: 0;
+            padding: 12px 15px;
+            background: #171e2a;
+            color: #cbd1da;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .message.user p {
+            background: rgba(255,106,0,.1);
+        }
+
+        .sage-actions-panel {
+            padding: 16px 20px;
+            border-top: 1px solid var(--line);
+            background: #0d121b;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sage-options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .sage-options-grid button {
+            background: #151b27;
+            border: 1px solid var(--line);
+            color: #b8c0cc;
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 11px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .sage-options-grid button:hover {
+            border-color: var(--orange);
+            color: #fff;
+            background: rgba(255,106,0,.08);
+        }
+
+        .toast {
+            position: fixed;
+            z-index: 60;
+            top: 22px;
+            right: 25px;
+            width: 330px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px 17px;
+            background: #171e2a;
+            border: 1px solid #344052;
+            box-shadow: 0 15px 40px #0008;
+            animation: toast-in .4s ease;
+        }
+
+        .toast > span {
+            color: var(--green);
+            font-size: 17px;
+        }
+
+        .toast strong {
+            font-size: 11px;
+        }
+
+        .toast p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .toast button {
+            margin-left: auto;
+            background: none;
+            border: 0;
+            color: #778394;
+            font-size: 17px;
+        }
+
+        .modal {
+            border: 1px solid #3c4655;
+            background: #111722;
+            color: #fff;
+            padding: 34px;
+            width: min(390px, calc(100% - 30px));
+            text-align: center;
+            box-shadow: 0 20px 80px #000b;
+        }
+
+        .modal::backdrop {
+            background: #030509bb;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-mark {
+            margin: 0 auto 15px;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            color: var(--orange);
+            background: rgba(255,106,0,.12);
+            font-size: 22px;
+        }
+
+        .modal h2 {
+            font-size: 19px;
+            font-weight: 500;
+            margin: 0 0 10px;
+        }
+
+        .modal p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 0 0 25px;
+        }
+
+        .primary-button {
+            border: 0;
+            background: var(--orange);
+            color: #0b0b0f;
+            padding: 13px 18px;
+            font-weight: bold;
+            font-size: 11px;
+            border-radius: 4px;
+        }
+
+        .login-screen {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            background: #080a0f;
+            width: 100%;
+        }
+
+        .login-art {
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 45%, rgba(17,64,116,.45), transparent 37%), linear-gradient(150deg,#0c1c36,#080a0f 70%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+        }
+
+        .login-art .crest {
+            width: 145px;
+            height: 145px;
+            border-color: rgba(255,106,0,.45);
+            box-shadow: 0 0 100px rgba(255,106,0,.12);
+        }
+
+        .kanji {
+            font-size: 120px;
+            color: rgba(255,255,255,.035);
+            position: absolute;
+            right: 12%;
+            top: 10%;
+            font-family: serif;
+        }
+
+        .login-art > p {
+            text-align: center;
+            color: #d7deeb;
+            font-size: 16px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .login-quote {
+            position: absolute;
+            bottom: 42px;
+            text-align: center;
+            color: #647184;
+            font-size: 10px;
+            line-height: 1.6;
+            letter-spacing: .04em;
+        }
+
+        .login-panel {
+            max-width: 470px;
+            width: 100%;
+            padding: 55px 8%;
+            margin: auto;
+        }
+
+        .login-copy {
+            margin: 85px 0 40px;
+        }
+
+        .login-copy h1 {
+            font-weight: 400;
+            font-size: 37px;
+            line-height: 1.15;
+            letter-spacing: -.04em;
+            margin: 14px 0;
+        }
+
+        .login-copy h1 strong {
+            color: var(--orange);
+            font-weight: 500;
+        }
+
+        .login-copy p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+            max-width: 350px;
+        }
+
+        .login-panel form {
+            display: flex;
+            flex-direction: column;
+            gap: 23px;
+        }
+
+        .login-panel label {
+            color: #7b8798;
+            font-size: 9px;
+            letter-spacing: .14em;
+        }
+
+        .login-panel input {
+            display: block;
+            width: 100%;
+            border: 1px solid var(--line);
+            background: #0e131c;
+            color: #fff;
+            padding: 14px;
+            margin-top: 9px;
+            outline: none;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .village-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+            margin-top: 9px;
+        }
+
+        .village-grid button {
+            border: 1px solid var(--line);
+            background: #0e131c;
+            color: #8993a4;
+            padding: 10px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            align-items: center;
+            font-size: 10px;
+            border-radius: 4px;
+        }
+
+        .village-grid button.selected {
+            color: #fff;
+            border-color: var(--orange);
+            background: rgba(255,106,0,.1);
+        }
+
+        .enter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 800px) {
+            .sidebar { display: none; }
+            .topbar { height: 70px; padding: 0 20px; }
+            .breadcrumb { font-size: 8px; }
+            .header-actions { gap: 10px; }
+            .profile-mini > div:nth-child(2), .chevron { display: none !important; }
+            .page-body { padding: 30px 18px 90px; }
+            .welcome-row { align-items: flex-start; flex-direction: column; margin-bottom: 25px; }
+            .welcome-row h1 { font-size: 28px; }
+            .outline-button { align-self: stretch; }
+            .stat-grid, .quick-grid, .product-grid, .inventory-grid { grid-template-columns: 1fr; }
+            .balance-card { min-height: 185px; }
+            .quick-grid button { min-height: 78px; }
+            .section-heading { margin-top: 35px; }
+            .mission-row { align-items: flex-start; padding: 16px; gap: 12px; }
+            .quiz-card { padding: 22px; }
+            .quiz-card h2 { font-size: 20px; margin: 27px 0; }
+            .mobile-nav { display: flex; position: fixed; z-index: 40; bottom: 0; left: 0; right: 0; height: 68px; background: #10141d; border-top: 1px solid var(--line); justify-content: space-around; }
+            .mobile-nav button { border: 0; background: none; color: #6f7a8c; font-size: 9px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px; }
+            .mobile-nav button span { font-size: 19px; }
+            .mobile-nav button.active { color: var(--orange); }
+            .login-screen { grid-template-columns: 1fr; }
+            .login-art { display: none; }
+            .login-panel { padding: 30px 25px; }
+        }
+    </style>
+</head>
+<body id="body-root">
+    <!-- Fundo de Vídeo ativo global -->
+    <div id="bg-video-container">
+        <video id="active-bg-video" autoplay muted loop playsinline style="display:none;"></video>
+    </div>
+
+    <!-- Elemento de Áudio Global Fixo para funcionar em todas as abas -->
+    <audio id="global-bg-audio" loop style="display:none;"></audio>
+
+    <div id="splash" class="splash">
+        <div class="crest"><span>⛩️</span></div>
+        <strong>SISTEMA SHINOBI</strong>
+        <span>A carregar o sistema shinobi...</span>
+        <div class="loadbar"><i></i></div>
+    </div>
+
+    <div id="app" class="hidden"></div>
+    <div id="toast-container"></div>
+
+    <dialog id="modal" class="modal">
+        <div class="modal-mark">⛩️</div>
+        <h2 id="modal-title"></h2>
+        <p id="modal-body"></p>
+        <button class="primary-button" onclick="closeModal()">Entendido</button>
+    </dialog>
+
+    <script>
+        /* ==========================================================================
+           CONFIGURAÇÕES DE MÍDIA CUSTOMIZADAS (LOCAL / WEB)
+           ========================================================================== */
+        const MEDIA_CONFIG = {
+            konohaVideo: "konoha.mp4",
+            valleyVideo: "valedofim.mp4",
+            akatsukiVideo: "akatsuki.mp4",
+            rainVideo: "amegakure.mp4",
+
+            afternoonAudio: "afternoon.mp3",
+            bluebirdAudio: "bluebird.mp3",
+            badsongAudio: "narutosad.mp3",
+
+            runnerNarutoMp4: "narutorun.webm", 
+            runnerObstacleImg: "gamakichi.webp",
+            runnerBgImg: "fundo.jpg"
+        };
+
+        const questions = [
+            ['Quem foi o primeiro Hokage?', 'Hashirama Senju', ['Madara Uchiha', 'Tobirama Senju', 'Hiruzen Sarutobi']],
+            ['Qual é a besta selada em Naruto?', 'Kurama', ['Shukaku', 'Gyuki', 'Matatabi']],
+            ['Qual é o clã de Sasuke?', 'Uchiha', ['Hyuga', 'Nara', 'Akimichi']],
+            ['Quem treinou Naruto no modo Sábio?', 'Jiraiya', ['Kakashi', 'Orochimaru', 'Might Guy']],
+            ['Qual é a aldeia de Gaara?', 'Areia', ['Folha', 'Névoa', 'Nuvem']],
+            ['Qual técnica é assinatura de Naruto?', 'Rasengan', ['Chidori', 'Amaterasu', 'Sussano']],
+            ['Quem é conhecido como o Relâmpago Amarelo?', 'Minato Namikaze', ['Kakashi Hatake', 'Raikage', 'Jiraiya']],
+            ['Qual olho possui o clã Hyuga?', 'Byakugan', ['Sharingan', 'Rinnegan', 'Tenseigan']],
+            ['Qual é o nome da espada lendária de Kisame Hoshigaki?', 'Samehada', ['Kubikiribocho', 'Kusanagi', 'Hiramekarei']],
+            ['Qual membro da Akatsuki faz dupla com Hidan?', 'Kakuzu', ['Deidara', 'Sasori', 'Tobi']],
+            ['Qual é o nome verdadeiro do Pain principal (Deva Path)?', 'Yahiko', ['Nagato', 'Jiraiya', 'Obito']],
+            ['Qual é a técnica ocular suprema obtida através do rinnegan supremo?', 'Rinne Sharingan', ['Mangekyo Sharingan', 'Tenseigan', 'Byakugan']],
+            ['Quem matou Danzo Shimura durante a Cúpula dos Kages?', 'Sasuke Uchiha', ['Naruto Uzumaki', 'Kakashi Hatake', 'Madara Uchiha']],
+            ['Qual é o animal invocado por Jiraiya?', 'Gamabunta (Sapos)', ['Katsuyu (Lesmas)', 'Manda (Cobras)', 'Enma (Macaco)']],
+            ['Qual é o nome do irmão mais velho de Sasuke?', 'Itachi Uchiha', ['Shisui Uchiha', 'Fugaku Uchiha', 'Izuna Uchiha']]
+        ];
+
+        const missions = [
+            { id: 'm_quiz', rank: 'D', title: 'Mestre do Conhecimento', desc: 'Acerte pelo menos 1 pergunta na Arena de Quiz.', reward: 100, targetType: 'quiz' },
+            { id: 'm_minigame', rank: 'B', title: 'Corrida Ninja Infinita', desc: 'Sobreviva e alcance 150 pontos no Mini-jogo Runner.', reward: 180, targetType: 'minigame' },
+            { id: 'm_sage', rank: 'A', title: 'Sabedoria Ancestral', desc: 'Consulte o Sábio IA fazendo uma pergunta ou lendo uma curiosidade.', reward: 150, targetType: 'sage' },
+            { id: 'm_chakra', rank: 'S', title: 'Concentração de Chakra', desc: 'Concentre seu chakra no painel espiritual.', reward: 250, targetType: 'chakra' }
+        ];
+
+        const products = [
+            { id: 'p1', name: 'Tema em Vídeo: Floresta de Konoha', type: 'Tema de Vídeo', price: 250, art: 'leaf', isVideoTheme: true, videoUrl: MEDIA_CONFIG.konohaVideo },
+            { id: 'p2', name: 'Tema em Vídeo: Batalha no Vale do Fim', type: 'Tema de Vídeo', price: 400, art: 'battle', isVideoTheme: true, videoUrl: MEDIA_CONFIG.valleyVideo },
+            { id: 'p3', name: 'Tema em Vídeo: Dimensão Akatsuki', type: 'Tema de Vídeo', price: 450, art: 'akatsuki', isVideoTheme: true, videoUrl: MEDIA_CONFIG.akatsukiVideo },
+            { id: 'p4', name: 'Tema em Vídeo: Noite Chuvosa em Amegakure', type: 'Tema de Vídeo', price: 480, art: 'rain', isVideoTheme: true, videoUrl: MEDIA_CONFIG.rainVideo },
+            { id: 'p5', name: 'Trilha Sonora: Naruto Afternoon', type: 'Áudio / Trilha', price: 150, art: 'steps', isAudio: true, audioUrl: MEDIA_CONFIG.afternoonAudio },
+            { id: 'p6', name: 'Trilha Sonora: Blue Bird', type: 'Áudio / Trilha', price: 220, art: 'steps', isAudio: true, audioUrl: MEDIA_CONFIG.bluebirdAudio },
+            { id: 'p7', name: 'Trilha Sonora: Naruto Bad Song', type: 'Áudio / Trilha', price: 180, art: 'battle', isAudio: true, audioUrl: MEDIA_CONFIG.badsongAudio }
+        ];
+
+        const sagePresetQA = [
+            { q: 'Qual é o verdadeiro objetivo da Akatsuki?', a: 'Capturar todas as Bijuus para realizar o Plano Olho da Lua e criar um mundo de ilusão eterna.' },
+            { q: 'Como funciona o Estilo Madeira (Mokuton)?', a: 'É uma kekkei genkai exclusiva de Hashirama Senju que combina Água e Terra para criar vegetação.' },
+            { q: 'O que significa Dattebayo?', a: 'É o tique verbal característico de Naruto Uzumaki, traduzido frequentemente como "Pode crer!" ou "É isso aí!".' },
+            { q: 'Qual a diferença entre Genjutsu, Ninjutsu e Taijutsu?', a: 'Ninjutsu usa chakra para jutsus físicos; Genjutsu manipula sentidos criando ilusões; Taijutsu foca em combate corporal.' },
+            { q: 'Quem foi o criador do Rasengan?', a: 'Minato Namikaze, o Quarto Hokage, que demorou três anos para criar a técnica inspirada na Bola de Bijuu.' },
+            { q: 'Qual é a Kekkei Tota de Onoki?', a: 'O Estilo Poeira (Jinton), que combina Vento, Terra e Fogo para desintegrar o alvo a nível molecular.' },
+            { q: 'Qual é o verdadeiro nome de Tobi?', a: 'Obito Uchiha, que operava sob a identidade falsa de Madara Uchiha durante grande parte da fase clássica e Shippuden.' },
+            { q: 'Onde fica a Vila Oculta da Névoa?', a: 'No País da Água, conhecida historicamente como a "Vila da Névoa Sangrenta" devido aos exames chūnin brutais.' },
+            { q: 'Qual é a Besta de Oito Caudas (Gyuki)?', a: 'Um Hachibi com tentáculos de polvo e corpo de touro, cujo jinchuriki é o carismático Killer Bee.' },
+            { q: 'O que é o Mangekyo Sharingan Eterno?', a: 'Uma evolução do Mangekyo Sharingan obtida ao transplantar os olhos de um irmão com sangue Uchiha próximo, eliminando a cegueira.' },
+            { q: 'Quem fundou a Aldeia da Folha junto com Hashirama?', a: 'Madara Uchiha, após anos de conflito entre os clãs Senju e Uchiha.' },
+            { q: 'Qual é a especialidade de Sakura Haruno?', a: 'Ninjutsu médico de alto nível e força monstruosa concentrada por controle preciso de chakra.' },
+            { q: 'O que o clã Nara utiliza em combate?', a: 'Técnicas de manipulação das sombras e alto QI estratégico para combates táticos.' },
+            { q: 'Qual é o jutsu proibido que reencarna os mortos?', a: 'Edo Tensei (Invocação: Reencarnação do Mundo Impuro), criado por Tobirama Senju.' },
+            { q: 'O que é o Modo Sábio dos Seis Caminhos?', a: 'Um estado divino concedido por Hagoromo Otsutsuki que eleva todas as estatísticas e habilidades elementais.' },
+            { q: 'Qual é a principal arma de Tenten?', a: 'Pergaminhos de invocação contendo centenas de armas ninjas de projétil.' },
+            { q: 'Quem é o mestre de Rock Lee?', a: 'Maito Guy, o mestre supremo do Taijutsu e dos Oito Portões Internos.' },
+            { q: 'O que acontece ao abrir o Oitavo Portão?', a: 'O Portão da Morte (Hachimon), que concede um poder superior ao de todos os Kages reunidos por breves instantes, custando a vida do usuário.' },
+            { q: 'Qual é a vila natal de Deidara?', a: 'A Vila Oculta da Pedra (Iwagakure), de onde desertou após explodir estruturas com sua arte explosiva.' },
+            { q: 'Qual é o clã de Neji?', a: 'O clã Hyuga, famoso pelo Byakugan e pelo estilo Punho Gentil.' }
+        ];
+
+        const narutoTriviaList = [
+            'Curiosidade: O criador Masashi Kishimoto baseou Konoha em sua cidade natal na província de Okayama.',
+            'Curiosidade: Kakashi Hatake quase teve um olho mecânico em vez do Sharingan na versão preliminar do mangá.',
+            'Curiosidade: O prato favorito de Naruto é o Lámen Ichiraku, e o de Sasuke são onigiri e tomates.',
+            'Curiosidade: O nome "Uzumaki" é um trocadilho para espiral ou redemoinho.',
+            'Curiosidade: Itachi Uchiha era considerado um pacifista por natureza, tendo a mentalidade de um Hokage desde os 7 anos.'
+        ];
+
+        let state = {
+            signedIn: false,
+            name: '',
+            village: 'Folha',
+            section: 'overview',
+            ryo: 1240,
+            quizIndex: 0,
+            quizScore: 0,
+            toast: 'Centro de Comando Shinobi iniciado com sucesso!',
+            modal: null,
+            inventory: [],
+            activeVideoId: null,
+            activeAudioId: null,
+            completedMissions: [],
+            messages: [
+                { from: 'sage', text: 'Bem-vindo ao santuário do Sábio IA. Escolha uma das 20 perguntas abaixo ou peça uma curiosidade!' }
+            ]
+        };
+
+        // Runner Game State & Assets
+        let runnerInterval = null;
+        let runnerState = {
+            isPlaying: false,
+            score: 0,
+            highScore: 0,
+            ninjaY: 0,
+            isJumping: false,
+            jumpVelocity: 0,
+            obstacles: [],
+            speed: 6,
+            frameCounter: 0,
+            bgX: 0
+        };
+
+        let narutoVideoObj = null;
+        let obstacleImgObj = null;
+        let runnerBgImgObj = null;
+
+        function preloadRunnerAssets() {
+            if (MEDIA_CONFIG.runnerNarutoMp4) {
+                narutoVideoObj = document.createElement('video');
+                narutoVideoObj.src = MEDIA_CONFIG.runnerNarutoMp4;
+                narutoVideoObj.muted = true;
+                narutoVideoObj.loop = true;
+                narutoVideoObj.playsInline = true;
+                narutoVideoObj.play().catch(() => {});
+            }
+            if (MEDIA_CONFIG.runnerObstacleImg) {
+                obstacleImgObj = new Image();
+                obstacleImgObj.src = MEDIA_CONFIG.runnerObstacleImg;
+            }
+            if (MEDIA_CONFIG.runnerBgImg) {
+                runnerBgImgObj = new Image();
+                runnerBgImgObj.src = MEDIA_CONFIG.runnerBgImg;
+            }
+        }
+
+        function initApp() {
+            preloadRunnerAssets();
+            const saved = window.localStorage.getItem('shinobi-profile-v7');
+            if (saved) {
+                try {
+                    const profile = JSON.parse(saved);
+                    state.name = profile.name || '';
+                    state.village = profile.village || 'Folha';
+                    state.ryo = profile.ryo || 1240;
+                    state.inventory = profile.inventory || [];
+                    state.activeVideoId = profile.activeVideoId || null;
+                    state.activeAudioId = profile.activeAudioId || null;
+                    state.completedMissions = profile.completedMissions || [];
+                    state.signedIn = true;
+                } catch (e) {}
+            }
+
+            updateVideoBackground();
+            updateGlobalAudio();
+
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                if (splash) splash.classList.add('hidden');
+                render();
+            }, 1800);
+
+            setTimeout(() => {
+                if (state.toast) showToast(state.toast);
+            }, 2000);
+        }
+
+        function saveProfile() {
+            window.localStorage.setItem('shinobi-profile-v7', JSON.stringify({
+                name: state.name,
+                village: state.village,
+                ryo: state.ryo,
+                inventory: state.inventory,
+                activeVideoId: state.activeVideoId,
+                activeAudioId: state.activeAudioId,
+                completedMissions: state.completedMissions
+            }));
+        }
+
+        function updateVideoBackground() {
+            const container = document.getElementById('active-bg-video');
+            if (!container) return;
+            if (!state.activeVideoId) {
+                container.style.display = 'none';
+                container.src = '';
+                return;
+            }
+            const prod = products.find(p => p.id === state.activeVideoId);
+            if (!prod || !prod.videoUrl) {
+                container.style.display = 'none';
+                return;
+            }
+            container.src = prod.videoUrl;
+            container.style.display = 'block';
+            container.play().catch(() => {});
+        }
+
+        function updateGlobalAudio() {
+            const audioElement = document.getElementById('global-bg-audio');
+            if (!audioElement) return;
+            if (!state.activeAudioId) {
+                audioElement.pause();
+                audioElement.src = '';
+                return;
+            }
+            const prod = products.find(p => p.id === state.activeAudioId);
+            if (!prod || !prod.audioUrl) {
+                audioElement.pause();
+                audioElement.src = '';
+                return;
+            }
+            if (audioElement.src !== window.location.origin + '/' + prod.audioUrl && !audioElement.src.endsWith(prod.audioUrl)) {
+                audioElement.src = prod.audioUrl;
+            }
+            audioElement.play().catch(() => {
+                // Browser autoplay restrictions fallback
+            });
+        }
+
+        function showToast(text) {
+            state.toast = text;
+            renderToast();
+        }
+
+        function renderToast() {
+            const container = document.getElementById('toast-container');
+            if (!state.toast) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = `
+                <div class="toast" onclick="state.toast=''; renderToast();">
+                    <span>✨</span>
+                    <div>
+                        <strong>Sistema Shinobi</strong>
+                        <p>${state.toast}</p>
+                    </div>
+                    <button>✕</button>
+                </div>
+            `;
+        }
+
+        function showModal(title, body) {
+            state.modal = { title, body };
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal').showModal();
+        }
+
+        function closeModal() {
+            state.modal = null;
+            document.getElementById('modal').close();
+            render();
+        }
+
+        function setSection(sec) {
+            if (state.section === 'minigame' && sec !== 'minigame') {
+                stopRunnerGame();
+            }
+            state.section = sec;
+            render();
+            if (sec === 'minigame') {
+                setupRunnerCanvas();
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const inputName = document.getElementById('login-name-input').value.trim();
+            if (!inputName) return;
+            state.name = inputName;
+            saveProfile();
+            state.signedIn = true;
+            showToast(`Bem-vindo à Vila da ${state.village}, ${state.name}!`);
+            render();
+        }
+
+        function selectVillage(v) {
+            state.village = v;
+            render();
+        }
+
+        function answerQuiz(option) {
+            const correct = option === questions[state.quizIndex][1];
+            if (correct) {
+                state.quizScore += 1;
+                state.ryo += 100;
+                checkMissionCompletion('quiz');
+                showModal('Resposta Correta!', 'Excelente domínio dos pergaminhos. +100 Ryo adicionados ao seu saldo.');
+            } else {
+                showModal('Resposta Incorreta', `A resposta correta era: "${questions[state.quizIndex][1]}". Continue treinando!`);
+            }
+            state.quizIndex = (state.quizIndex + 1) % questions.length;
+            saveProfile();
+            render();
+        }
+
+        // --- NINJA RUNNER MINI-GAME ---
+        function setupRunnerCanvas() {
+            const canvas = document.getElementById('runner-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            window.addEventListener('keydown', handleRunnerKey);
+            canvas.addEventListener('click', triggerRunnerJump);
+            drawRunnerScene(ctx, canvas);
+        }
+
+        function handleRunnerKey(e) {
+            if (state.section === 'minigame' && (e.code === 'Space' || e.code === 'ArrowUp')) {
+                e.preventDefault();
+                triggerRunnerJump();
+            }
+        }
+
+        function triggerRunnerJump() {
+            if (!runnerState.isPlaying) {
+                startRunnerGame();
+                return;
+            }
+            if (!runnerState.isJumping) {
+                runnerState.isJumping = true;
+                runnerState.jumpVelocity = -12;
+            }
+        }
+
+        function startRunnerGame() {
+            runnerState.isPlaying = true;
+            runnerState.score = 0;
+            runnerState.ninjaY = 0;
+            runnerState.isJumping = false;
+            runnerState.jumpVelocity = 0;
+            runnerState.obstacles = [];
+            runnerState.speed = 6;
+            runnerState.frameCounter = 0;
+            runnerState.bgX = 0;
+
+            if (runnerInterval) clearInterval(runnerInterval);
+            runnerInterval = setInterval(updateRunnerFrame, 1000 / 60);
+        }
+
+        function stopRunnerGame() {
+            if (runnerInterval) {
+                clearInterval(runnerInterval);
+                runnerInterval = null;
+            }
+            runnerState.isPlaying = false;
+            window.removeEventListener('keydown', handleRunnerKey);
+        }
+
+        function updateRunnerFrame() {
+            const canvas = document.getElementById('runner-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            runnerState.frameCounter++;
+            runnerState.score += 1;
+            runnerState.bgX = (runnerState.bgX - runnerState.speed) % canvas.width;
+
+            if (runnerState.score > runnerState.highScore) {
+                runnerState.highScore = runnerState.score;
+            }
+
+            if (runnerState.score >= 150) {
+                checkMissionCompletion('minigame');
+            }
+
+            if (runnerState.isJumping) {
+                runnerState.ninjaY += runnerState.jumpVelocity;
+                runnerState.jumpVelocity += 0.6;
+                if (runnerState.ninjaY >= 0) {
+                    runnerState.ninjaY = 0;
+                    runnerState.isJumping = false;
+                }
+            }
+
+            if (runnerState.frameCounter % 85 === 0) {
+                runnerState.obstacles.push({
+                    x: canvas.width,
+                    width: 35,
+                    height: 50
+                });
+            }
+
+            for (let i = runnerState.obstacles.length - 1; i >= 0; i--) {
+                runnerState.obstacles[i].x -= runnerState.speed;
+
+                const ninjaBox = { x: 80, y: 195 + runnerState.ninjaY, w: 45, h: 55 };
+                const obsBox = { x: runnerState.obstacles[i].x, y: 200, w: runnerState.obstacles[i].width, h: runnerState.obstacles[i].height };
+
+                if (ninjaBox.x < obsBox.x + obsBox.w && ninjaBox.x + ninjaBox.w > obsBox.x && ninjaBox.y < obsBox.y + obsBox.h && ninjaBox.y + ninjaBox.h > obsBox.y) {
+                    stopRunnerGame();
+                    state.ryo += Math.floor(runnerState.score / 2);
+                    saveProfile();
+                    showModal('Fim de Jogo (Runner)', `Você sobreviveu e acumulou ${runnerState.score} pontos! +${Math.floor(runnerState.score / 2)} Ryo adicionados.`);
+                    render();
+                    return;
+                }
+
+                if (runnerState.obstacles[i].x + runnerState.obstacles[i].width < 0) {
+                    runnerState.obstacles.splice(i, 1);
+                }
+            }
+
+            drawRunnerScene(ctx, canvas);
+        }
+
+        function drawRunnerScene(ctx, canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Parallax Scrolling Background
+            if (runnerBgImgObj && runnerBgImgObj.complete && runnerBgImgObj.naturalWidth !== 0) {
+                ctx.drawImage(runnerBgImgObj, runnerState.bgX, 0, canvas.width, canvas.height);
+                ctx.drawImage(runnerBgImgObj, runnerState.bgX + canvas.width, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = '#101724';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#27303d';
+                ctx.lineWidth = 1;
+                for (let x = runnerState.bgX; x < canvas.width; x += 100) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, 250);
+                    ctx.stroke();
+                }
+            }
+
+            // Ground line
+            ctx.strokeStyle = '#ff6a00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, 250);
+            ctx.lineTo(canvas.width, 250);
+            ctx.stroke();
+
+            // Render Character (MP4 Video / Sprite)
+            if (narutoVideoObj && narutoVideoObj.readyState >= 2) {
+                ctx.drawImage(narutoVideoObj, 70, 180 + runnerState.ninjaY, 65, 75);
+            } else {
+                ctx.fillStyle = '#ff6a00';
+                ctx.fillRect(80, 195 + runnerState.ninjaY, 45, 55);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(80, 202 + runnerState.ninjaY, 45, 12);
+            }
+
+            // Render Obstacles (Image or Vector)
+            runnerState.obstacles.forEach(obs => {
+                if (obstacleImgObj && obstacleImgObj.complete && obstacleImgObj.naturalWidth !== 0) {
+                    ctx.drawImage(obstacleImgObj, obs.x, 250 - obs.height - 5, obs.width + 5, obs.height + 5);
+                } else {
+                    ctx.fillStyle = '#8993a4';
+                    ctx.fillRect(obs.x, 250 - obs.height, obs.width, obs.height);
+                }
+            });
+
+            // Score Display
+            ctx.fillStyle = '#f5f6f8';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(`SCORE: ${runnerState.score}  |  HI: ${runnerState.highScore}`, 25, 35);
+
+            if (!runnerState.isPlaying) {
+                ctx.fillStyle = 'rgba(8, 10, 15, 0.88)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ff6a00';
+                ctx.font = 'bold 18px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('CLIQUE OU PRESSIONE ESPAÇO PARA INICIAR', canvas.width / 2, canvas.height / 2);
+                ctx.textAlign = 'left';
+            }
+        }
+
+        function triggerChakraTraining() {
+            state.ryo += 200;
+            checkMissionCompletion('chakra');
+            showModal('Chakra Concentrado!', 'Sua energia espiritual e física se uniram perfeitamente. +200 Ryo.');
+            saveProfile();
+            render();
+        }
+
+        function checkMissionCompletion(targetType) {
+            const m = missions.find(x => x.targetType === targetType);
+            if (m && !state.completedMissions.includes(m.id)) {
+                state.completedMissions.push(m.id);
+                state.ryo += m.reward;
+                showToast(`Missão Concluída: ${m.title} (+${m.reward} Ryo)`);
+            }
+        }
+
+        function buyProduct(product) {
+            if (state.inventory.includes(product.id)) {
+                showModal('Já Adquirido', 'Você já possui este item em seu inventário.');
+                return;
+            }
+            if (state.ryo < product.price) {
+                showModal('Saldo Insuficiente', 'Complete mais missões ou o quiz para acumular Ryo suficiente.');
+                return;
+            }
+            state.ryo -= product.price;
+            state.inventory.push(product.id);
+            showModal('Item Desbloqueado!', `${product.name} foi adicionado ao seu Inventário Shinobi.`);
+            saveProfile();
+            render();
+        }
+
+        function buyAllProducts() {
+            let totalCost = 0;
+            const unowned = products.filter(p => !state.inventory.includes(p.id));
+            if (unowned.length === 0) {
+                showModal('Loja Vazia', 'Você já adquiriu todos os itens disponíveis na loja!');
+                return;
+            }
+            unowned.forEach(p => totalCost += p.price);
+
+            if (state.ryo < totalCost) {
+                showModal('Saldo Insuficiente', `Você precisa de ${totalCost} Ryo para comprar todos os itens.`);
+                return;
+            }
+
+            state.ryo -= totalCost;
+            unowned.forEach(p => state.inventory.push(p.id));
+            showModal('Arsenal Completo Desbloqueado!', 'Todos os temas de vídeo e áudios foram adicionados ao seu inventário.');
+            saveProfile();
+            render();
+        }
+
+        function toggleVideoTheme(productId) {
+            if (state.activeVideoId === productId) {
+                state.activeVideoId = null;
+                showToast('Tema em vídeo desativado.');
+            } else {
+                state.activeVideoId = productId;
+                showToast('Tema em vídeo ativado no fundo.');
+            }
+            updateVideoBackground();
+            saveProfile();
+            render();
+        }
+
+        function toggleAudio(productId) {
+            if (state.activeAudioId === productId) {
+                state.activeAudioId = null;
+                showToast('Áudio desativado.');
+            } else {
+                state.activeAudioId = productId;
+                showToast('Trilha sonora / Áudio ativado.');
+            }
+            updateGlobalAudio();
+            saveProfile();
+            render();
+        }
+
+        function askSagePreset(index) {
+            const item = sagePresetQA[index];
+            state.messages.push({ from: 'user', text: item.q });
+            state.messages.push({ from: 'sage', text: item.a });
+            checkMissionCompletion('sage');
+            render();
+            scrollToBottom();
+        }
+
+        function askSageTrivia() {
+            const randomTrivia = narutoTriviaList[Math.floor(Math.random() * narutoTriviaList.length)];
+            state.messages.push({ from: 'user', text: 'Me conte uma curiosidade sobre o universo de Naruto.' });
+            state.messages.push({ from: 'sage', text: randomTrivia });
+            checkMissionCompletion('sage');
+            render();
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                const box = document.getElementById('chat-messages-box');
+                if (box) box.scrollTop = box.scrollHeight;
+            }, 50);
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            app.classList.remove('hidden');
+
+            if (!state.signedIn) {
+                app.innerHTML = renderLogin();
+                return;
+            }
+
+            const rank = state.ryo > 1800 ? 'Jōnin' : state.ryo > 1100 ? 'Chūnin' : 'Genin';
+            const todayStr = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+
+            app.innerHTML = `
+                <div class="app-content-wrapper">
+                    <aside class="sidebar">
+                        <div class="brand"><div class="crest crest-small"><span>⛩️</span></div><div><strong>SHINOBI</strong><span>ARCHIVES</span></div></div>
+                        <div class="side-label">CENTRO DE COMANDO</div>
+                        <nav>
+                            <button class="${state.section === 'overview' ? 'active' : ''}" onclick="setSection('overview')"><span>📊</span>Visão geral</button>
+                            <button class="${state.section === 'inventory' ? 'active' : ''}" onclick="setSection('inventory')"><span>🎒</span>Inventário</button>
+                            <button class="${state.section === 'quiz' ? 'active' : ''}" onclick="setSection('quiz')"><span>📜</span>Arena de quiz</button>
+                            <button class="${state.section === 'minigame' ? 'active' : ''}" onclick="setSection('minigame')"><span>🏃</span>Runner Ninja</button>
+                            <button class="${state.section === 'missions' ? 'active' : ''}" onclick="setSection('missions')"><span>🏆</span>Missões<b>4</b></button>
+                            <button class="${state.section === 'shop' ? 'active' : ''}" onclick="setSection('shop')"><span>🎧</span>Loja ninja</button>
+                            <button class="${state.section === 'sage' ? 'active' : ''}" onclick="setSection('sage')"><span>🔮</span>Sábio IA</button>
+                        </nav>
+                        <div class="sidebar-bottom">
+                            <div class="side-label">STATUS DO SISTEMA</div>
+                            <div class="status"><i></i> Todos os sistemas online</div>
+                            <div class="version">v3.4.0 • Shinobi Archives</div>
+                        </div>
+                    </aside>
+                    <main class="main-content">
+                        <header class="topbar">
+                            <div class="breadcrumb">CENTRO DE COMANDO <span>/</span> ${state.section.toUpperCase()}</div>
+                            <div class="header-actions">
+                                <button class="icon-button" onclick="showModal('Notificações', 'Você possui missões dinâmicas prontas para cumprir e bônus de treino.')">🔔<em></em></button>
+                                <div class="profile-mini">
+                                    <div class="avatar">${state.name.slice(0, 1).toUpperCase()}</div>
+                                    <div><strong>${state.name}</strong><span>${state.village} • ${rank}</span></div>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="page-body">
+                            ${renderSectionContent(rank, todayStr)}
+                        </div>
+                    </main>
+                    <nav class="mobile-nav">
+                        <button class="${state.section === 'overview' ? 'active' : ''}" onclick="setSection('overview')"><span>📊</span>Início</button>
+                        <button class="${state.section === 'inventory' ? 'active' : ''}" onclick="setSection('inventory')"><span>🎒</span>Inventário</button>
+                        <button class="${state.section === 'quiz' ? 'active' : ''}" onclick="setSection('quiz')"><span>📜</span>Quiz</button>
+                        <button class="${state.section === 'minigame' ? 'active' : ''}" onclick="setSection('minigame')"><span>🏃</span>Runner</button>
+                        <button class="${state.section === 'missions' ? 'active' : ''}" onclick="setSection('missions')"><span>🏆</span>Missões</button>
+                        <button class="${state.section === 'shop' ? 'active' : ''}" onclick="setSection('shop')"><span>🎧</span>Loja</button>
+                        <button class="${state.section === 'sage' ? 'active' : ''}" onclick="setSection('sage')"><span>🔮</span>Sábio</button>
+                    </nav>
+                </div>
+            `;
+
+            if (state.section === 'minigame') {
+                setTimeout(setupRunnerCanvas, 50);
+            }
+        }
+
+        function renderLogin() {
+            return `
+                <main class="login-screen" style="position:relative; z-index:20;">
+                    <div class="login-art">
+                        <div class="grid-glow"></div>
+                        <div class="crest"><span>⛩️</span></div>
+                        <div class="kanji">忍</div>
+                        <p>O caminho do shinobi começa<br>com uma decisão.</p>
+                        <div class="login-quote"> Aqueles que quebram as regras são lixo,<br>mas aqueles que abandonam seus amigos<br>são piores que lixo. </div>
+                    </div>
+                    <div class="login-panel">
+                        <div class="login-logo"><div class="crest crest-small"><span>⛩️</span></div><div><strong>SHINOBI</strong><span>ARCHIVES</span></div></div>
+                        <div class="login-copy">
+                            <span class="eyebrow">ACESSO RESTRITO • NÍVEL GENIN</span>
+                            <h1>Entre para o<br><strong>mundo shinobi.</strong></h1>
+                            <p>Registre sua identidade ninja e comece a trilhar seu próprio caminho.</p>
+                        </div>
+                        <form onsubmit="handleLogin(event)">
+                            <label>SEU NOME NINJA
+                                <input id="login-name-input" value="${state.name}" placeholder="Ex.: Naruto Uzumaki" />
+                            </label>
+                            <label>ESCOLHA SUA ALDEIA
+                                <div class="village-grid">
+                                    ${['Folha', 'Areia', 'Névoa', 'Pedra'].map(item => `
+                                        <button type="button" class="${state.village === item ? 'selected' : ''}" onclick="selectVillage('${item}')">
+                                            <span>${item === 'Folha' ? '🍃' : item === 'Areia' ? '🏜️' : item === 'Névoa' ? '💧' : '🪨'}</span>${item}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </label>
+                            <button class="primary-button enter" type="submit">Despertar meu chakra <span>➔</span></button>
+                        </form>
+                        <small>Ao entrar, você concorda com os termos do código shinobi.</small>
+                    </div>
+                </main>
+            `;
+        }
+
+        function renderSectionContent(rank, todayStr) {
+            if (state.section === 'overview') {
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">${todayStr}</span>
+                            <h1>Olá, ${state.name.split(' ')[0]} <span class="orange">👋</span></h1>
+                            <p>Seu caminho ninja continua. Mantenha o foco nos treinos.</p>
+                        </div>
+                        <button class="outline-button" onclick="showModal('Relatório shinobi', 'Patente ${rank} • Aldeia da ${state.village} • Saldo de ${state.ryo.toLocaleString('pt-BR')} Ryo.')">Ver relatório completo <span>➔</span></button>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="profile-card">
+                            <div class="card-top"><span class="eyebrow">PERFIL SHINOBI</span><span class="rank-dot">● ATIVO</span></div>
+                            <div class="profile-main">
+                                <div class="large-avatar">${state.name.slice(0, 1).toUpperCase()}</div>
+                                <div><h2>${state.name}</h2><p>${state.village} • Patente ${rank}</p></div>
+                                <span class="profile-arrow">➔</span>
+                            </div>
+                            <div class="xp">
+                                <div><span>PROGRESSO PARA JŌNIN</span><strong>68%</strong></div>
+                                <div class="xp-bar"><i></i></div>
+                            </div>
+                        </div>
+                        <div class="balance-card">
+                            <div class="card-top"><span class="eyebrow">SALDO DE RYO</span><span class="coin">🪙</span></div>
+                            <strong class="balance">${state.ryo.toLocaleString('pt-BR')}</strong>
+                            <span class="balance-change">▲ 12.4% <small>desde a última semana</small></span>
+                            <div class="mini-chart"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                        </div>
+                    </div>
+                    <div class="section-heading">
+                        <div><span class="eyebrow">ACESSO RÁPIDO</span><h2>Continue seu treino</h2></div>
+                        <button class="text-button" onclick="setSection('missions')">Ver todas as missões</button>
+                    </div>
+                    <div class="quick-grid">
+                        <button onclick="setSection('quiz')"><span class="quick-icon orange-icon">📜</span><div><strong>Arena de quiz</strong><small>Teste seus conhecimentos</small></div><span>➔</span></button>
+                        <button onclick="setSection('minigame')"><span class="quick-icon blue-icon">🏃</span><div><strong>Runner Ninja</strong><small>Jogo infinito estilo dinossauro</small></div><span>➔</span></button>
+                        <button onclick="setSection('sage')"><span class="quick-icon purple-icon">🔮</span><div><strong>Consultar o Sábio</strong><small>20 perguntas prontas & curiosidades</small></div><span>➔</span></button>
+                    </div>
+                    <div class="recent-heading"><span class="eyebrow">TREINAMENTO DE CHAKRA</span></div>
+                    <div class="quiz-card" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h2 style="margin:0 0 8px; font-size:16px;">Exercício de Concentração Espiritual</h2>
+                            <p style="margin:0; font-size:11px; color:var(--muted);">Canalize seu chakra para receber recompensas diárias (+200 Ryo).</p>
+                        </div>
+                        <button class="primary-button" onclick="triggerChakraTraining()">Canalizar Chakra</button>
+                    </div>
+                `;
+            } else if (state.section === 'inventory') {
+                const ownedProducts = products.filter(p => state.inventory.includes(p.id));
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">INVENTÁRIO SHINOBI</span>
+                            <h1>Seus itens e temas de fundo.</h1>
+                            <p>Gerencie e ative os temas em vídeo e áudios adquiridos na loja.</p>
+                        </div>
+                    </div>
+                    ${ownedProducts.length === 0 ? `
+                        <div class="quiz-card" style="text-align:center;">
+                            <h2 style="margin:10px 0 15px;">Seu inventário está vazio.</h2>
+                            <p>Visite a Loja Ninja para adquirir temas em vídeo e trilhas sonoras.</p>
+                            <button class="primary-button" style="margin-top:15px;" onclick="setSection('shop')">Ir para a Loja Ninja</button>
+                        </div>
+                    ` : `
+                        <div class="inventory-grid">
+                            ${ownedProducts.map(p => {
+                                const isVideoActive = p.isVideoTheme && state.activeVideoId === p.id;
+                                const isAudioActive = p.isAudio && state.activeAudioId === p.id;
+                                return `
+                                    <div class="inventory-card">
+                                        <div class="product-art ${p.art}">
+                                            <span>${p.art === 'leaf' ? '🍃' : p.art === 'battle' ? '⚔️' : p.art === 'akatsuki' ? '☁️' : p.art === 'rain' ? '🌧️' : '🎧'}</span>
+                                            <small>ADQUIRIDO</small>
+                                        </div>
+                                        <div class="inventory-info">
+                                            <span class="eyebrow">${p.type}</span>
+                                            <h2>${p.name}</h2>
+                                            ${p.isVideoTheme ? `
+                                                <button class="action-btn" style="width:100%; text-align:center; ${isVideoActive ? 'background:rgba(94,210,138,0.2);color:var(--green);border-color:var(--green);' : ''}" onclick="toggleVideoTheme('${p.id}')">
+                                                    ${isVideoActive ? '✓ Vídeo Ativo (Desativar)' : 'Ativar Tema em Vídeo'}
+                                                </button>
+                                            ` : ''}
+                                            ${p.isAudio ? `
+                                                <button class="action-btn" style="width:100%; text-align:center; ${isAudioActive ? 'background:rgba(94,210,138,0.2);color:var(--green);border-color:var(--green);' : ''}" onclick="toggleAudio('${p.id}')">
+                                                    ${isAudioActive ? '🔊 Áudio Global Ativo (Desligar)' : '▶ Ativar Áudio Global'}
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                `;
+            } else if (state.section === 'quiz') {
+                const q = questions[state.quizIndex];
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">ARENA DE QUIZ • PERGUNTA ${state.quizIndex + 1} DE ${questions.length}</span>
+                            <h1>Prove seu conhecimento.</h1>
+                            <p>Acerte perguntas para ganhar Ryo e concluir a missão diária correspondente.</p>
+                        </div>
+                        <div class="score-box">PONTUAÇÃO <strong>${state.quizScore}</strong></div>
+                    </div>
+                    <div class="quiz-card">
+                        <div class="quiz-kicker">PERGAMINHO DE TRIVIA <span>+100 RYO / ACERTO</span></div>
+                        <h2>${q[0]}</h2>
+                        <div class="answers">
+                            ${[q[1], ...q[2]].sort(() => Math.random() - 0.5).map((ans, i) => `
+                                <button onclick="answerQuiz('${ans.replace(/'/g, "\\'")}')"><span>${String.fromCharCode(65 + i)}</span>${ans}<b>➔</b></button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (state.section === 'minigame') {
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">MINI-JOGO INFINITO</span>
+                            <h1>Corrida Ninja (Runner Ampliado).</h1>
+                            <p>Pressione Espaço ou clique na tela para pular os obstáculos e acumular pontos.</p>
+                        </div>
+                        <div class="score-box">META <strong>150 PTS</strong></div>
+                    </div>
+                    <div class="minigame-card" style="text-align:center; padding:25px;">
+                        <canvas id="runner-canvas" width="900" height="340" style="width:100%; max-width:900px; background:#0c1017; border:1px solid var(--line); cursor:pointer; display:block; margin:0 auto;"></canvas>
+                        <p style="color:var(--muted); margin-top:15px; font-size:12px;">Dica: Clique no canvas ou use a tecla [Espaço] / [Seta para cima] para pular.</p>
+                    </div>
+                `;
+            } else if (state.section === 'missions') {
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">QUADRO DE MISSÕES</span>
+                            <h1>Desafios dinâmicos e interativos.</h1>
+                            <p>Complete as tarefas na plataforma (Quiz, Runner Ninja, Sábio IA e Chakra) para resgatar Ryos.</p>
+                        </div>
+                        <div class="mission-count"><strong>0${missions.length}</strong><span>missões ativas</span></div>
+                    </div>
+                    <div class="mission-list">
+                        ${missions.map(m => {
+                            const isDone = state.completedMissions.includes(m.id);
+                            return `
+                                <div class="mission-row" key="${m.id}">
+                                    <div class="rank rank-${m.rank.toLowerCase()}">${m.rank}</div>
+                                    <div class="mission-copy">
+                                        <div><span class="eyebrow">RANK ${m.rank}</span></div>
+                                        <h2>${m.title}</h2>
+                                        <p>${m.desc}</p>
+                                    </div>
+                                    <div class="mission-reward">
+                                        <span>RECOMPENSA</span>
+                                        <strong>+${m.reward} <small>RYO</small></strong>
+                                        <button class="action-btn ${isDone ? 'completed' : ''}">
+                                            ${isDone ? '✓ Concluída' : 'Pendente na Plataforma'}
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else if (state.section === 'shop') {
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">LOJA NINJA • TEMAS EM VÍDEO E ÁUDIO</span>
+                            <h1>Arsenal e personalização.</h1>
+                            <p>Adquira temas em vídeo imersivos para o fundo e trilhas sonoras shinobi.</p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div class="shop-balance">🪙 ${state.ryo.toLocaleString('pt-BR')} <small>RYO</small></div>
+                            <button class="primary-button" onclick="buyAllProducts()">Ativar Todos os Produtos</button>
+                        </div>
+                    </div>
+                    <div class="product-grid">
+                        ${products.map(p => {
+                            const owned = state.inventory.includes(p.id);
+                            return `
+                                <div class="product-card">
+                                    <div class="product-art ${p.art}">
+                                        <span>${p.art === 'leaf' ? '🍃' : p.art === 'battle' ? '⚔️' : p.art === 'akatsuki' ? '☁️' : p.art === 'rain' ? '🌧️' : '🎧'}</span>
+                                        <small>SHINOBI<br>ARCHIVES</small>
+                                    </div>
+                                    <div class="product-info">
+                                        <span class="eyebrow">${p.type}</span>
+                                        <h2>${p.name}</h2>
+                                        <div>
+                                            <strong>${p.price} <small>RYO</small></strong>
+                                            <button class="action-btn" ${owned ? 'disabled style="background:rgba(94,210,138,0.15);color:var(--green);border-color:var(--green);cursor:default;"' : ''} onclick='buyProduct(${JSON.stringify(p)})'>
+                                                ${owned ? 'Adquirido' : 'Desbloquear'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else if (state.section === 'sage') {
+                return `
+                    <div class="welcome-row">
+                        <div>
+                            <span class="eyebrow">CONSULTA ESPIRITUAL • SÁBIO IA</span>
+                            <h1>Fale com o Sábio.</h1>
+                            <p>Escolha entre as 20 perguntas prontas abaixo ou revele uma curiosidade do universo de Naruto.</p>
+                        </div>
+                        <div class="sage-status"><i></i> ONLINE</div>
+                    </div>
+                    <div class="sage-card">
+                        <div class="sage-header">
+                            <div class="sage-orb">🔮</div>
+                            <div><h2>Sábio IA</h2><p>Guardião dos pergaminhos shinobi</p></div>
+                            <span>CONEXÃO SEGURA</span>
+                        </div>
+                        <div class="chat-messages" id="chat-messages-box">
+                            ${state.messages.map(msg => `
+                                <div class="message ${msg.from}">
+                                    <span class="message-avatar">${msg.from === 'sage' ? '🔮' : 'N'}</span>
+                                    <p>${msg.text}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="sage-actions-panel">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span class="eyebrow">20 PERGUNTAS PRONTAS (CLIQUE PARA PERGUNTAR)</span>
+                                <button class="primary-button" style="padding:6px 12px; font-size:10px;" onclick="askSageTrivia()">✨ Curiosidade Ninja</button>
+                            </div>
+                            <div class="sage-options-grid">
+                                ${sagePresetQA.map((item, idx) => `
+                                    <button onclick="askSagePreset(${idx})">💬 ${item.q}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
